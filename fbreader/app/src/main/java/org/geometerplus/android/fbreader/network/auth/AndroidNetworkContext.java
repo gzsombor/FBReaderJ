@@ -30,8 +30,6 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesUtil;
 
 import org.geometerplus.zlibrary.core.network.*;
 
@@ -41,18 +39,6 @@ public abstract class AndroidNetworkContext extends ZLNetworkContext {
 	private boolean hasGoogleAuth(Context context) {
 		if (Build.VERSION.SDK_INT < 14) {
 			return false;
-		}
-		switch (GooglePlayServicesUtil.isGooglePlayServicesAvailable(context)) {
-			case ConnectionResult.SUCCESS:
-				break;
-			// TODO: process other codes
-			default:
-				return false;
-		}
-		for (AuthenticatorDescription desc : AccountManager.get(context).getAuthenticatorTypes()) {
-			if ("com.google".equals(desc.type)) {
-				return true;
-			}
 		}
 		return false;
 	}

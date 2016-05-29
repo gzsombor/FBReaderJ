@@ -22,20 +22,17 @@ package org.geometerplus.android.fbreader.network.auth;
 import java.net.URI;
 import java.util.Map;
 
-import android.app.*;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.ui.android.R;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
-import android.text.TextUtils;
-
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.auth.UserRecoverableNotifiedException;
-import com.google.android.gms.common.Scopes;
-
-import org.geometerplus.zlibrary.core.resources.ZLResource;
-
-import org.geometerplus.zlibrary.ui.android.R;
 
 public class ServiceNetworkContext extends AndroidNetworkContext {
 	private final Service myService;
@@ -77,33 +74,6 @@ public class ServiceNetworkContext extends AndroidNetworkContext {
 
 	@Override
 	protected Map<String,String> authenticateToken(URI uri, String realm, String authUrl, String clientId) {
-		final String account = getAccountName(uri.getHost(), realm);
-		if (account == null) {
-			return errorMap("Account name is not specified");
-		}
-
-		System.err.println("+++ SERVICE TOKEN AUTH +++");
-		try {
-			final String authToken = GoogleAuthUtil.getTokenWithNotification(
-				myService, account, String.format("audience:server:client_id:%s", clientId), null
-			);
-			final Map<String,String> result = runTokenAuthorization(authUrl, authToken, null);
-			if (result.containsKey("user")) {
-				return result;
-			}
-			final String code = GoogleAuthUtil.getTokenWithNotification(
-				myService, account, String.format(
-					"oauth2:server:client_id:%s:api_scope:%s", clientId,
-					TextUtils.join(" ", new Object[] { Scopes.DRIVE_FILE, Scopes.PROFILE })
-				), null
-			);
-			return runTokenAuthorization(authUrl, authToken, code);
-		} catch (UserRecoverableNotifiedException e) {
-			return errorMap(e);
-		} catch (Exception e) {
-			return errorMap(e);
-		} finally {
-			System.err.println("--- SERVICE TOKEN AUTH ---");
-		}
+		return errorMap("not implemented");
 	}
 }
