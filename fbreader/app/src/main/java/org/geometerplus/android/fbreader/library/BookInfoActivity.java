@@ -21,36 +21,8 @@ package org.geometerplus.android.fbreader.library;
 
 import java.io.File;
 import java.text.DateFormat;
-import java.util.*;
-
-import android.app.ActionBar;
-import android.app.Activity;
-import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.graphics.Bitmap;
-import android.os.Bundle;
-import android.text.method.LinkMovementMethod;
-import android.util.DisplayMetrics;
-import android.view.*;
-import android.widget.*;
-
-import org.geometerplus.zlibrary.core.filesystem.ZLFile;
-import org.geometerplus.zlibrary.core.filesystem.ZLPhysicalFile;
-import org.geometerplus.zlibrary.core.image.ZLImage;
-import org.geometerplus.zlibrary.core.image.ZLImageProxy;
-import org.geometerplus.zlibrary.core.language.Language;
-import org.geometerplus.zlibrary.core.language.ZLLanguageUtil;
-import org.geometerplus.zlibrary.core.resources.ZLResource;
-
-import org.geometerplus.zlibrary.ui.android.R;
-import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageData;
-import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageManager;
-
-import org.geometerplus.fbreader.Paths;
-import org.geometerplus.fbreader.book.*;
-import org.geometerplus.fbreader.formats.PluginCollection;
-import org.geometerplus.fbreader.network.NetworkLibrary;
-import org.geometerplus.fbreader.network.HtmlUtil;
+import java.util.Collections;
+import java.util.Date;
 
 import org.geometerplus.android.fbreader.FBReader;
 import org.geometerplus.android.fbreader.FBUtil;
@@ -59,6 +31,44 @@ import org.geometerplus.android.fbreader.libraryService.BookCollectionShadow;
 import org.geometerplus.android.fbreader.preferences.EditBookInfoActivity;
 import org.geometerplus.android.fbreader.util.AndroidImageSynchronizer;
 import org.geometerplus.android.util.OrientationUtil;
+import org.geometerplus.fbreader.Paths;
+import org.geometerplus.fbreader.book.Book;
+import org.geometerplus.fbreader.book.BookEvent;
+import org.geometerplus.fbreader.book.BookUtil;
+import org.geometerplus.fbreader.book.CoverUtil;
+import org.geometerplus.fbreader.book.IBookCollection;
+import org.geometerplus.fbreader.book.SeriesInfo;
+import org.geometerplus.fbreader.formats.PluginCollection;
+import org.geometerplus.fbreader.network.HtmlUtil;
+import org.geometerplus.fbreader.network.NetworkLibrary;
+import org.geometerplus.zlibrary.core.filesystem.ZLFile;
+import org.geometerplus.zlibrary.core.filesystem.ZLPhysicalFile;
+import org.geometerplus.zlibrary.core.image.ZLImage;
+import org.geometerplus.zlibrary.core.image.ZLImageProxy;
+import org.geometerplus.zlibrary.core.language.Language;
+import org.geometerplus.zlibrary.core.language.ZLLanguageUtil;
+import org.geometerplus.zlibrary.core.resources.ZLResource;
+import org.geometerplus.zlibrary.ui.android.R;
+import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageData;
+import org.geometerplus.zlibrary.ui.android.image.ZLAndroidImageManager;
+
+import android.app.ActionBar;
+import android.app.Activity;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.os.Bundle;
+import android.text.method.LinkMovementMethod;
+import android.util.DisplayMetrics;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemClickListener, IBookCollection.Listener<Book> {
 	private static final boolean ENABLE_EXTENDED_FILE_INFO = false;
@@ -299,6 +309,7 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 	private static final int REMOVE_FROM_FAVORITES = 6;
 	private static final int MARK_AS_READ = 7;
 	private static final int MARK_AS_UNREAD = 8;
+	private static final int DELETE_BOOK = 9;
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -316,6 +327,9 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 			addMenuItem(menu, MARK_AS_UNREAD, "markAsUnread", false);
 		} else {
 			addMenuItem(menu, MARK_AS_READ, "markAsRead", false);
+		}
+		if (myCollection.canRemoveBook(myBook, true)) {
+			addMenuItem(menu, DELETE_BOOK, "deleteBook", false);
 		}
 		return true;
 	}
@@ -386,6 +400,17 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 					myBook.removeLabel(Book.READ_LABEL);
 					saveBook();
 					invalidateOptionsMenu();
+				}
+				return true;
+			case DELETE_BOOK:
+				if (myBook != null) {
+					LibraryActivity.openDeleteConfirmation(this, Collections.singletonList(myBook), new OnClickListener() {
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							myCollection.removeBook(myBook, true);
+							invalidateOptionsMenu();
+						}
+					});
 				}
 				return true;
 			default:

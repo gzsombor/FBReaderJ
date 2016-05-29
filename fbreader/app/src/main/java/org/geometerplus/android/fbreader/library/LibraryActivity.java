@@ -430,7 +430,7 @@ public class LibraryActivity extends TreeActivity<LibraryTree> implements MenuIt
 		}
 	}
 
-	private void tryToDeleteBooks(List<Book> books) {
+	public static void openDeleteConfirmation(Context context, List<Book> books, DialogInterface.OnClickListener listener) {
 		final int size = books.size();
 		if (size == 0) {
 			return;
@@ -445,13 +445,17 @@ public class LibraryActivity extends TreeActivity<LibraryTree> implements MenuIt
 			: boxResource.getResource("title").getValue();
 		final String message =
 			boxResource.getResource("message").getValue(size).replaceAll("%s", String.valueOf(size));
-		new AlertDialog.Builder(this)
+		new AlertDialog.Builder(context)
 			.setTitle(title)
 			.setMessage(message)
 			.setIcon(0)
-			.setPositiveButton(buttonResource.getResource("yes").getValue(), new BookDeleter(books))
+			.setPositiveButton(buttonResource.getResource("yes").getValue(), listener)
 			.setNegativeButton(buttonResource.getResource("no").getValue(), null)
 			.create().show();
+	}
+
+	private void tryToDeleteBooks(List<Book> books) {
+		openDeleteConfirmation(this, books, new BookDeleter(books));
 	}
 
 	private void tryToDeleteBook(Book book) {
