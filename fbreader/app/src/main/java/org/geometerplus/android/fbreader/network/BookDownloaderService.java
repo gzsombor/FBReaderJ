@@ -51,6 +51,9 @@ public class BookDownloaderService extends Service {
 		String FROM_SYNC = "fbreader.downloader.from.sync";
 		String BOOK_TITLE = "fbreader.downloader.book.title";
 		String BOOK_KIND = "fbreader.downloader.book.kind";
+		String BOOK_SUMMARY = "fbreader.downloader.book.summary";
+		String BOOK_TAGS = "fbreader.downloader.book.tags";
+		String BOOK_AUTHORS = "fbreader.downloader.book.authors";
 		String BOOK_MIME = "fbreader.downloader.book.mime";
 		String CLEAN_URL = "fbreader.downloader.clean.url";
 		String SHOW_NOTIFICATIONS = "fbreader.downloader.show.notifications";

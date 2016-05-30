@@ -19,16 +19,22 @@
 
 package org.geometerplus.fbreader.network;
 
-import java.util.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
+import org.geometerplus.fbreader.book.Book;
+import org.geometerplus.fbreader.book.BookUtil;
+import org.geometerplus.fbreader.book.IBookCollection;
+import org.geometerplus.fbreader.network.authentication.NetworkAuthenticationManager;
+import org.geometerplus.fbreader.network.urlInfo.BookBuyUrlInfo;
+import org.geometerplus.fbreader.network.urlInfo.BookUrlInfo;
+import org.geometerplus.fbreader.network.urlInfo.RelatedUrlInfo;
+import org.geometerplus.fbreader.network.urlInfo.UrlInfo;
+import org.geometerplus.fbreader.network.urlInfo.UrlInfoCollection;
 import org.geometerplus.zlibrary.core.filesystem.ZLPhysicalFile;
 import org.geometerplus.zlibrary.core.network.ZLNetworkContext;
-import org.geometerplus.zlibrary.core.network.ZLNetworkException;
-
-import org.geometerplus.fbreader.book.*;
-import org.geometerplus.fbreader.network.urlInfo.*;
-import org.geometerplus.fbreader.network.authentication.NetworkAuthenticationManager;
 
 public class NetworkBookItem extends NetworkItem {
 	public static enum Status {
@@ -258,6 +264,14 @@ public class NetworkBookItem extends NetworkItem {
 				}
 			}
 		}
+	}
+	
+	public ArrayList<String> getAuthorNames() {
+		ArrayList<String> authorNames = new ArrayList<String>(Authors.size());
+		for (AuthorData author : Authors) {
+			authorNames.add(author.DisplayName);
+		}
+		return authorNames;
 	}
 
 	public String getStringId() {

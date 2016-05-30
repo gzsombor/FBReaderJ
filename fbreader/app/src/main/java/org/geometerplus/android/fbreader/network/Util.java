@@ -132,6 +132,9 @@ public abstract class Util implements UserRegistrationConstants {
 					.putExtra(BookDownloaderService.Key.BOOK_MIME, ref.Mime.toString())
 					.putExtra(BookDownloaderService.Key.BOOK_KIND, resolvedType)
 					.putExtra(BookDownloaderService.Key.CLEAN_URL, ref.cleanUrl())
+					.putExtra(BookDownloaderService.Key.BOOK_SUMMARY, book.getSummary())
+					.putExtra(BookDownloaderService.Key.BOOK_TAGS, book.Tags)
+					.putStringArrayListExtra(BookDownloaderService.Key.BOOK_AUTHORS, book.getAuthorNames())
 					.putExtra(BookDownloaderService.Key.BOOK_TITLE, book.Title)
 			);
 		}
