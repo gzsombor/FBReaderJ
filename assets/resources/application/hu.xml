@@ -920,6 +920,7 @@
 			<node name="edit" value="Szerkesztés"/>
 			<node name="reloadInfo" value="Újratöltés"/>
 			<node name="shareBook" value="Megosztás"/>
+			<node name="deleteBook" value="Törlés"/>
 			<node name="topup" value="Számla feltöltése"/>
 			<node name="pay" value="Fizetés"/>
 			<node name="refresh" value="Frissítés"/>

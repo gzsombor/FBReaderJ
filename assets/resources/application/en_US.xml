@@ -930,6 +930,7 @@
 			<node name="edit" value="Edit"/>
 			<node name="reloadInfo" value="Reload"/>
 			<node name="shareBook" value="Share"/>
+			<node name="deleteBook" value="Delete"/>
 			<node name="topup" value="Add credit"/>
 			<node name="pay" value="Pay"/>
 			<node name="refresh" value="Refresh"/>
