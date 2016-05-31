@@ -481,11 +481,17 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 
 	public void rescan(String path) {
 		synchronized (myFilesToRescanLock) {
-			processFilesQueue(path);
+			processFilesQueue(path, null);
 		}
 	}
 
-	private void processFilesQueue(String path) {
+	public void rescanOneBook(String path, Book book) {
+		synchronized (myFilesToRescanLock) {
+			processFilesQueue(path, book);
+		}
+	}
+
+	private void processFilesQueue(String path, Book prototypeBook) {
 		synchronized (myFilesToRescanLock) {
 			if (!myStatus.IsComplete) {
 				return;
@@ -502,13 +508,18 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 					}
 				}
 
-				for (ZLFile file : collectPhysicalFiles(Collections.singletonList(path))) {
+				List<ZLPhysicalFile> physicalFiles = collectPhysicalFiles(Collections.singletonList(path));
+				boolean oneFile =physicalFiles.size() == 1;
+				for (ZLFile file : physicalFiles) {
 					// TODO:
 					// collect books from archives
 					// rescan files and check book id
 					filesToRemove.remove(file);
 					final DbBook book = getBookByFile(file);
 					if (book != null) {
+						if (oneFile && prototypeBook != null) {
+							updateFrom(book, prototypeBook);
+						}
 						saveBook(book);
 						getHash(book, false);
 					}
@@ -527,6 +538,29 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 
 
 		}
+	}
+
+	private static boolean isNotEmpty(String str) {
+		return str != null && str.trim().length() > 0;
+	}
+	
+	private void updateFrom(DbBook book, Book prototypeBook) {
+		if (isNotEmpty(prototypeBook.getTitle())) {
+			book.setTitle(prototypeBook.getTitle());
+		}
+		if (isNotEmpty(prototypeBook.getLanguage())) {
+			book.setLanguage(prototypeBook.getLanguage());
+		}
+		if (isNotEmpty(prototypeBook.getEncodingNoDetection())) {
+			book.setEncoding(prototypeBook.getEncodingNoDetection());
+		}
+		if (prototypeBook.authors() != null && !prototypeBook.authors().isEmpty()) {
+			book.removeAllAuthors();
+			for (Author a : prototypeBook.authors()) {
+				book.addAuthor(a);
+			}
+		}
+		// TODO: tags, etc ...
 	}
 
 	private void build() {
