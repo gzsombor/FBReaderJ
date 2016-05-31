@@ -45,8 +45,8 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 		Collections.synchronizedMap(new LinkedHashMap<ZLFile,DbBook>());
 	private final Map<Long,DbBook> myBooksById =
 		Collections.synchronizedMap(new HashMap<Long,DbBook>());
-	private final List<String> myFilesToRescan =
-		Collections.synchronizedList(new LinkedList<String>());
+	private final Object myFilesToRescanLock = new Object();
+		
 	private final DuplicateResolver myDuplicateResolver = new DuplicateResolver();
 
 	private volatile Status myStatus = Status.NotStarted;
@@ -469,9 +469,6 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 					setStatus(Status.Failed);
 					t.printStackTrace();
 				} finally {
-					synchronized (myFilesToRescan) {
-						processFilesQueue();
-					}
 					for (DbBook book : new ArrayList<DbBook>(myBooksByFile.values())) {
 						getHash(book, false);
 					}
@@ -483,20 +480,19 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 	}
 
 	public void rescan(String path) {
-		synchronized (myFilesToRescan) {
-			myFilesToRescan.add(path);
-			processFilesQueue();
+		synchronized (myFilesToRescanLock) {
+			processFilesQueue(path);
 		}
 	}
 
-	private void processFilesQueue() {
-		synchronized (myFilesToRescan) {
+	private void processFilesQueue(String path) {
+		synchronized (myFilesToRescanLock) {
 			if (!myStatus.IsComplete) {
 				return;
 			}
 
 			final Set<ZLFile> filesToRemove = new HashSet<ZLFile>();
-			for (String path : myFilesToRescan) {
+			if (path != null) {
 				path = new ZLPhysicalFile(new File(path)).getPath();
 				synchronized (myBooksByFile) {
 					for (ZLFile f : myBooksByFile.keySet()) {
@@ -505,32 +501,31 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 						}
 					}
 				}
-			}
 
-			for (ZLFile file : collectPhysicalFiles(myFilesToRescan)) {
-				// TODO:
-				// collect books from archives
-				// rescan files and check book id
-				filesToRemove.remove(file);
-				final DbBook book = getBookByFile(file);
-				if (book != null) {
-					saveBook(book);
-					getHash(book, false);
-				}
-			}
-
-			for (ZLFile f : filesToRemove) {
-				synchronized (myBooksByFile) {
-					final DbBook book = myBooksByFile.remove(f);
-					myDuplicateResolver.removeFile(f);
+				for (ZLFile file : collectPhysicalFiles(Collections.singletonList(path))) {
+					// TODO:
+					// collect books from archives
+					// rescan files and check book id
+					filesToRemove.remove(file);
+					final DbBook book = getBookByFile(file);
 					if (book != null) {
-						myBooksById.remove(book.getId());
-						fireBookEvent(BookEvent.Removed, book);
+						saveBook(book);
+						getHash(book, false);
+					}
+				}
+				for (ZLFile f : filesToRemove) {
+					synchronized (myBooksByFile) {
+						final DbBook book = myBooksByFile.remove(f);
+						myDuplicateResolver.removeFile(f);
+						if (book != null) {
+							myBooksById.remove(book.getId());
+							fireBookEvent(BookEvent.Removed, book);
+						}
 					}
 				}
 			}
 
-			myFilesToRescan.clear();
+
 		}
 	}
 
