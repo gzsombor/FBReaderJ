@@ -25,6 +25,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.IBinder;
+import android.os.RemoteException;
 import android.os.FileObserver;
 
 import org.geometerplus.zlibrary.core.options.Config;
@@ -375,6 +376,10 @@ public class LibraryService extends Service {
 
 		public void rescan(String path) {
 			myCollection.rescan(path);
+		}
+
+		public void rescanOneBook(String path, String book) throws RemoteException {
+			myCollection.rescanOneBook(path, SerializerUtil.deserializeBook(book, myCollection));
 		}
 
 		public String getHash(String book, boolean force) {

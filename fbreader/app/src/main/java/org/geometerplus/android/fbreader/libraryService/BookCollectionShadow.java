@@ -550,6 +550,16 @@ public class BookCollectionShadow extends AbstractBookCollection<Book> implement
 		}
 	}
 
+	public void rescanOneBook(String path, Book book) {
+		if (myInterface != null) {
+			try {
+				myInterface.rescanOneBook(path, SerializerUtil.serialize(book));
+			} catch (RemoteException e) {
+				// ignore ???
+			}
+		}
+	}
+
 	public List<FormatDescriptor> formats() {
 		return listCall(new ListCallable<FormatDescriptor>() {
 			public List<FormatDescriptor> call() throws RemoteException {

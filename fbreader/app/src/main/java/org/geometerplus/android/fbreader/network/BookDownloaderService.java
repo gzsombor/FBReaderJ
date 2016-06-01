@@ -37,6 +37,7 @@ import org.geometerplus.zlibrary.ui.android.R;
 import org.geometerplus.zlibrary.ui.android.network.SQLiteCookieDatabase;
 
 import org.geometerplus.fbreader.network.urlInfo.UrlInfo;
+import org.geometerplus.fbreader.book.Book;
 import org.geometerplus.fbreader.network.urlInfo.BookUrlInfo;
 
 import org.geometerplus.android.fbreader.FBReader;
@@ -54,6 +55,10 @@ public class BookDownloaderService extends Service {
 		String BOOK_SUMMARY = "fbreader.downloader.book.summary";
 		String BOOK_TAGS = "fbreader.downloader.book.tags";
 		String BOOK_AUTHORS = "fbreader.downloader.book.authors";
+		String BOOK_LANGUAGE = "fbreader.downloader.book.language";
+		String BOOK_ENCODING = "fbreader.downloader.book.encoding";
+		String BOOK_SERIES_TITLE = "fbreader.downloader.book.series.title";
+		String BOOK_SERIES_INDEX = "fbreader.downloader.book.series.index";
 		String BOOK_MIME = "fbreader.downloader.book.mime";
 		String CLEAN_URL = "fbreader.downloader.clean.url";
 		String SHOW_NOTIFICATIONS = "fbreader.downloader.show.notifications";
@@ -187,7 +192,30 @@ public class BookDownloaderService extends Service {
 		if ((notifications & Notifications.DOWNLOAD_STARTED) != 0) {
 			showMessage("downloadStarted");
 		}
-		startFileDownload(url, fileFile, title);
+		final Book book = createBook(intent, fileFile, title);
+		startFileDownload(url, fileFile, book);
+	}
+
+	private Book createBook(Intent intent, final File fileFile, String title) {
+	    // when the id is -1, the xml deserializer, skips ... better to have 0
+		Book book = new Book(0, fileFile.getAbsolutePath(), title, intent.getStringExtra(Key.BOOK_ENCODING), intent.getStringExtra(Key.BOOK_LANGUAGE));
+		ArrayList<String> authors = intent.getStringArrayListExtra(Key.BOOK_AUTHORS);
+		if (authors != null) {
+			for (String author : authors) {
+				book.addAuthor(author);
+			}
+		}
+		String series = intent.getStringExtra(Key.BOOK_SERIES_TITLE);
+		if (series != null) {
+		    book.setSeriesInfo(series, intent.getStringExtra(Key.BOOK_SERIES_INDEX));
+		}
+		ArrayList<String> tags = intent.getStringArrayListExtra(Key.BOOK_TAGS);
+		if (tags != null) {
+			for (String tag : tags) {
+				book.addTag(tag);
+			}
+		}
+		return book;
 	}
 
 	private void showMessageText(String text) {
@@ -259,12 +287,12 @@ public class BookDownloaderService extends Service {
 		);
 	}
 
-	private void startFileDownload(final String urlString, final File file, final String title) {
+	private void startFileDownload(final String urlString, final File file, final Book book) {
 		myDownloadingURLs.add(urlString);
 		sendDownloaderCallback();
 
 		final int notificationId = NotificationUtil.getDownloadId(file.getPath());
-		final Notification progressNotification = createDownloadProgressNotification(title);
+		final Notification progressNotification = createDownloadProgressNotification(book.getTitle());
 
 		final NotificationManager notificationManager =
 			(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
@@ -299,7 +327,7 @@ public class BookDownloaderService extends Service {
 						myOngoingNotifications.remove(Integer.valueOf(notificationId));
 						notificationManager.notify(
 							notificationId,
-							createDownloadFinishNotification(file, title, message.arg1 != 0)
+							createDownloadFinishNotification(file, book.getTitle(), message.arg1 != 0)
 						);
 						sendDownloaderCallback();
 						doStop();
@@ -346,7 +374,7 @@ public class BookDownloaderService extends Service {
 					collection.bindToService(BookDownloaderService.this, new Runnable() {
 						@Override
 						public void run() {
-							collection.rescan(file.getPath());
+							collection.rescanOneBook(file.getPath(), book);
 							collection.unbind();
 						}
 					});

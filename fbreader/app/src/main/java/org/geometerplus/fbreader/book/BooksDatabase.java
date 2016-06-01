@@ -75,8 +75,8 @@ public abstract class BooksDatabase {
 
 	protected abstract Long bookIdByUid(UID uid);
 
-	protected abstract void updateBookInfo(long bookId, long fileId, String encoding, String language, String title);
-	protected abstract long insertBookInfo(ZLFile file, String encoding, String language, String title);
+	protected abstract void updateBookInfo(long bookId, long fileId, String encoding, String language, String title, String summary);
+	protected abstract long insertBookInfo(ZLFile file, String encoding, String language, String title, String summary);
 	protected abstract void deleteAllBookAuthors(long bookId);
 	protected abstract void saveBookAuthorInfo(long bookId, long index, Author author);
 	protected abstract void deleteAllBookTags(long bookId);

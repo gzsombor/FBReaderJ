@@ -47,6 +47,7 @@ public abstract class AbstractBook extends TitledEntity<AbstractBook> {
 	protected volatile SeriesInfo mySeriesInfo;
 	protected volatile List<UID> myUids;
 	protected volatile RationalNumber myProgress;
+	protected volatile String mySummary;
 
 	public volatile boolean HasBookmark;
 
@@ -417,6 +418,14 @@ public abstract class AbstractBook extends TitledEntity<AbstractBook> {
 			return true;
 		}
 		return false;
+	}
+
+	public String getSummary() {
+		return mySummary;
+	}
+
+	public void setSummary(String summary) {
+		this.mySummary = summary;
 	}
 
 	@Override

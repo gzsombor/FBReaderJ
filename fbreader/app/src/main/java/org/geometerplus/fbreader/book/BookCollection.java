@@ -485,13 +485,13 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 		}
 	}
 
-	public void rescanOneBook(String path, Book book) {
+	public void rescanOneBook(String path, AbstractBook book) {
 		synchronized (myFilesToRescanLock) {
 			processFilesQueue(path, book);
 		}
 	}
 
-	private void processFilesQueue(String path, Book prototypeBook) {
+	private void processFilesQueue(String path, AbstractBook prototypeBook) {
 		synchronized (myFilesToRescanLock) {
 			if (!myStatus.IsComplete) {
 				return;
@@ -544,7 +544,7 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 		return str != null && str.trim().length() > 0;
 	}
 	
-	private void updateFrom(DbBook book, Book prototypeBook) {
+	private void updateFrom(DbBook book, AbstractBook prototypeBook) {
 		if (isNotEmpty(prototypeBook.getTitle())) {
 			book.setTitle(prototypeBook.getTitle());
 		}

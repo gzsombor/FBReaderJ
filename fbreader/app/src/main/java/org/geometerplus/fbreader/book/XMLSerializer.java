@@ -227,6 +227,9 @@ class XMLSerializer extends AbstractSerializer {
 		if (book.HasBookmark) {
 			appendTag(buffer, "has-bookmark", true);
 		}
+		if (book.getSummary() != null) {
+			appendTagWithContent(buffer, "dc:description", book.getSummary());
+		}
 
 		// TODO: serialize description (?)
 		// TODO: serialize cover (?)
@@ -529,6 +532,7 @@ class XMLSerializer extends AbstractSerializer {
 			READ_AUTHOR_NAME,
 			READ_SERIES_TITLE,
 			READ_SERIES_INDEX,
+			READ_SUMMARY
 		}
 
 		private final BookCreator<B> myBookCreator;
@@ -549,6 +553,7 @@ class XMLSerializer extends AbstractSerializer {
 		private final StringBuilder myAuthorName = new StringBuilder();
 		private final StringBuilder mySeriesTitle = new StringBuilder();
 		private final StringBuilder mySeriesIndex = new StringBuilder();
+		private final StringBuilder mySummary = new StringBuilder();
 		private boolean myHasBookmark;
 		private RationalNumber myProgress;
 
@@ -574,6 +579,7 @@ class XMLSerializer extends AbstractSerializer {
 			clear(mySeriesTitle);
 			clear(mySeriesIndex);
 			clear(myUid);
+			clear(mySummary);
 			myUidList.clear();
 			myAuthors.clear();
 			myTags.clear();
@@ -606,6 +612,7 @@ class XMLSerializer extends AbstractSerializer {
 			}
 			myBook.setSeriesInfoWithNoCheck(string(mySeriesTitle), string(mySeriesIndex));
 			myBook.setProgressWithNoCheck(myProgress);
+			myBook.setSummary(string(mySummary));
 			myBook.HasBookmark = myHasBookmark;
 		}
 
@@ -663,6 +670,8 @@ class XMLSerializer extends AbstractSerializer {
 							parseLong(attributes.getValue("numerator")),
 							parseLong(attributes.getValue("denominator"))
 						);
+					} else if ("description".equals(localName) && XMLNamespaces.DublinCore.equals(uri)) {
+						myState = State.READ_SUMMARY;
 					} else {
 						throw new SAXException("Unexpected tag " + localName);
 					}
@@ -741,6 +750,9 @@ class XMLSerializer extends AbstractSerializer {
 					break;
 				case READ_SERIES_INDEX:
 					mySeriesIndex.append(ch, start, length);
+					break;
+				case READ_SUMMARY:
+					mySummary.append(ch, start, length);
 					break;
 			}
 		}

@@ -82,4 +82,6 @@ interface LibraryInterface {
 
 	int getDefaultHighlightingStyleId();
 	void setDefaultHighlightingStyleId(in int styleId);
+
+	void rescanOneBook(in String path, in String book);
 }

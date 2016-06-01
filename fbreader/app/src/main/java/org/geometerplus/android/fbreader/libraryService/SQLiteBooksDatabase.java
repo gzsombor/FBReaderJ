@@ -75,7 +75,7 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 
 	private void migrate() {
 		final int version = myDatabase.getVersion();
-		final int currentVersion = 40;
+		final int currentVersion = 41;
 		if (version >= currentVersion) {
 			return;
 		}
@@ -163,6 +163,8 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 				updateTables38();
 			case 39:
 				updateTables39();
+			case 40:
+				updateTables40();
 		}
 		myDatabase.setTransactionSuccessful();
 		myDatabase.setVersion(currentVersion);
@@ -198,11 +200,12 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 	@Override
 	protected DbBook loadBook(long bookId) {
 		DbBook book = null;
-		final Cursor cursor = myDatabase.rawQuery("SELECT file_id,title,encoding,language FROM Books WHERE book_id = " + bookId, null);
+		final Cursor cursor = myDatabase.rawQuery("SELECT file_id,title,encoding,language,summary FROM Books WHERE book_id = " + bookId, null);
 		if (cursor.moveToNext()) {
 			book = createBook(
 				bookId, cursor.getLong(0), cursor.getString(1), cursor.getString(2), cursor.getString(3)
 			);
+			book.setSummary(cursor.getString(4));
 		}
 		cursor.close();
 		return book;
@@ -214,11 +217,12 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 			return null;
 		}
 		DbBook book = null;
-		final Cursor cursor = myDatabase.rawQuery("SELECT book_id,title,encoding,language FROM Books WHERE file_id = " + fileId, null);
+		final Cursor cursor = myDatabase.rawQuery("SELECT book_id,title,encoding,language,summary FROM Books WHERE file_id = " + fileId, null);
 		if (cursor.moveToNext()) {
 			book = createBook(
 				cursor.getLong(0), file, cursor.getString(1), cursor.getString(2), cursor.getString(3)
 			);
+			book.setSummary(cursor.getString(4));
 		}
 		cursor.close();
 		return book;
@@ -249,7 +253,7 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 	@Override
 	protected Map<Long,DbBook> loadBooks(FileInfoSet infos, boolean existing) {
 		Cursor cursor = myDatabase.rawQuery(
-			"SELECT book_id,file_id,title,encoding,language FROM Books WHERE `exists` = " + (existing ? 1 : 0), null
+			"SELECT book_id,file_id,title,encoding,language,summary FROM Books WHERE `exists` = " + (existing ? 1 : 0), null
 		);
 		final HashMap<Long,DbBook> booksById = new HashMap<Long,DbBook>();
 		final HashMap<Long,DbBook> booksByFileId = new HashMap<Long,DbBook>();
@@ -260,6 +264,7 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 				id, infos.getFile(fileId), cursor.getString(2), cursor.getString(3), cursor.getString(4)
 			);
 			if (book != null) {
+				book.setSummary(cursor.getString(5));
 				booksById.put(id, book);
 				booksByFileId.put(fileId, book);
 			}
@@ -396,24 +401,25 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 	}
 
 	@Override
-	protected void updateBookInfo(long bookId, long fileId, String encoding, String language, String title) {
+	protected void updateBookInfo(long bookId, long fileId, String encoding, String language, String title, String summary) {
 		final SQLiteStatement statement = get(
-			"UPDATE OR IGNORE Books SET file_id=?, encoding=?, language=?, title=? WHERE book_id=?"
+			"UPDATE OR IGNORE Books SET file_id=?, encoding=?, language=?, title=?,summary=? WHERE book_id=?"
 		);
 		synchronized (statement) {
 			statement.bindLong(1, fileId);
 			SQLiteUtil.bindString(statement, 2, encoding);
 			SQLiteUtil.bindString(statement, 3, language);
 			statement.bindString(4, title);
-			statement.bindLong(5, bookId);
+			SQLiteUtil.bindString(statement, 5, summary);
+			statement.bindLong(6, bookId);
 			statement.execute();
 		}
 	}
 
 	@Override
-	protected long insertBookInfo(ZLFile file, String encoding, String language, String title) {
+	protected long insertBookInfo(ZLFile file, String encoding, String language, String title, String summary) {
 		final SQLiteStatement statement = get(
-			"INSERT OR IGNORE INTO Books (encoding,language,title,file_id) VALUES (?,?,?,?)"
+			"INSERT OR IGNORE INTO Books (encoding,language,title,file_id,summary) VALUES (?,?,?,?,?)"
 		);
 		synchronized (statement) {
 			SQLiteUtil.bindString(statement, 1, encoding);
@@ -421,6 +427,7 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 			statement.bindString(3, title);
 			final FileInfoSet infoSet = new FileInfoSet(this, file);
 			statement.bindLong(4, infoSet.getId(file));
+			SQLiteUtil.bindString(statement, 5, summary);
 			return statement.executeInsert();
 		}
 	}
@@ -1863,6 +1870,10 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 		myDatabase.execSQL("DROP TABLE IF EXISTS BookLabel_Obsolete");
 
 		myDatabase.execSQL("CREATE TABLE IF NOT EXISTS DeletedBookLabelIds(uid TEXT(36) PRIMARY KEY)");
+	}
+	
+	private void updateTables40() {
+		myDatabase.execSQL("ALTER TABLE Books ADD COLUMN summary TEXT DEFAULT NULL");
 	}
 
 	private SQLiteStatement get(String sql) {
