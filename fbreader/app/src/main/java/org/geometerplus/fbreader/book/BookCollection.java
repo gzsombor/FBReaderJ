@@ -30,6 +30,8 @@ import org.geometerplus.zlibrary.core.util.SystemInfo;
 import org.geometerplus.zlibrary.text.view.ZLTextFixedPosition;
 import org.geometerplus.zlibrary.text.view.ZLTextPosition;
 
+import android.util.Log;
+
 import org.geometerplus.fbreader.formats.*;
 
 public class BookCollection extends AbstractBookCollection<DbBook> {
@@ -496,6 +498,11 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 			if (!myStatus.IsComplete) {
 				return;
 			}
+			if (prototypeBook != null) {
+			    Log.w("processFilesQueue_prototypeBook", "prototypeBook : "+prototypeBook.getTitle()+", author:"+prototypeBook.authorsString(" "));
+			} else {
+			    Log.w("processFilesQueue_prototypeBook", "no prototy book specified!");
+			}
 
 			final Set<ZLFile> filesToRemove = new HashSet<ZLFile>();
 			if (path != null) {
@@ -514,12 +521,15 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 					// TODO:
 					// collect books from archives
 					// rescan files and check book id
+					Log.w("processFilesQueue", "file processing : '"+file.getPath()+"' name:'"+file.getLongName()+"'");
 					filesToRemove.remove(file);
 					final DbBook book = getBookByFile(file);
 					if (book != null) {
+						Log.w("processFilesQueue_dbBbook", "dbbook : "+book.getTitle()+", author:"+book.authorsString(" "));
 						if (oneFile && prototypeBook != null) {
 							updateFrom(book, prototypeBook);
 						}
+						Log.w("processFilesQueue_updatedBook", "book : "+book.getTitle()+", author:"+book.authorsString(" ")+" summary:"+book.getSummary());
 						saveBook(book);
 						getHash(book, false);
 					}
@@ -550,6 +560,9 @@ public class BookCollection extends AbstractBookCollection<DbBook> {
 		}
 		if (isNotEmpty(prototypeBook.getLanguage())) {
 			book.setLanguage(prototypeBook.getLanguage());
+		}
+		if (isNotEmpty(prototypeBook.getSummary())) {
+			book.setSummary(prototypeBook.getSummary());
 		}
 		if (isNotEmpty(prototypeBook.getEncodingNoDetection())) {
 			book.setEncoding(prototypeBook.getEncodingNoDetection());

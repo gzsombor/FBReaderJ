@@ -25,6 +25,7 @@ import android.app.Service;
 import android.content.*;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.util.Log;
 
 import org.geometerplus.zlibrary.core.options.Config;
 
@@ -553,7 +554,9 @@ public class BookCollectionShadow extends AbstractBookCollection<Book> implement
 	public void rescanOneBook(String path, Book book) {
 		if (myInterface != null) {
 			try {
-				myInterface.rescanOneBook(path, SerializerUtil.serialize(book));
+				String bookStr = SerializerUtil.serialize(book);
+				Log.w("rescanOneBook", bookStr);
+				myInterface.rescanOneBook(path, bookStr);
 			} catch (RemoteException e) {
 				// ignore ???
 			}

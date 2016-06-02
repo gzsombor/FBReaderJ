@@ -27,6 +27,7 @@ import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.*;
+import android.util.Log;
 import android.widget.RemoteViews;
 import android.widget.Toast;
 
@@ -291,6 +292,9 @@ public class BookDownloaderService extends Service {
 		myDownloadingURLs.add(urlString);
 		sendDownloaderCallback();
 
+		Log.w("startFileDownload", "url "+urlString+" title: "+book.getTitle()+" summary:"+book.getSummary()+", authors:"+book.authorsString(" ")+" tags: "+book.tagsString("-"));
+
+		
 		final int notificationId = NotificationUtil.getDownloadId(file.getPath());
 		final Notification progressNotification = createDownloadProgressNotification(book.getTitle());
 
@@ -374,6 +378,7 @@ public class BookDownloaderService extends Service {
 					collection.bindToService(BookDownloaderService.this, new Runnable() {
 						@Override
 						public void run() {
+							Log.w("rescanCall", "file path:"+file.getPath());
 							collection.rescanOneBook(file.getPath(), book);
 							collection.unbind();
 						}

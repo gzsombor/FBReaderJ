@@ -24,6 +24,7 @@ import java.math.BigDecimal;
 
 import android.content.Context;
 import android.database.sqlite.*;
+import android.util.Log;
 import android.database.SQLException;
 import android.database.Cursor;
 
@@ -208,6 +209,7 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 			book.setSummary(cursor.getString(4));
 		}
 		cursor.close();
+		Log.w("loadBook", "id: "+bookId+", title: "+book.getTitle()+", summary:"+book.getSummary());
 		return book;
 	}
 
@@ -402,6 +404,7 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 
 	@Override
 	protected void updateBookInfo(long bookId, long fileId, String encoding, String language, String title, String summary) {
+		Log.w("updateBookInfo", "title:"+title+", summary:"+summary+" for id: "+bookId+", "+fileId);
 		final SQLiteStatement statement = get(
 			"UPDATE OR IGNORE Books SET file_id=?, encoding=?, language=?, title=?,summary=? WHERE book_id=?"
 		);
@@ -418,6 +421,8 @@ final class SQLiteBooksDatabase extends BooksDatabase {
 
 	@Override
 	protected long insertBookInfo(ZLFile file, String encoding, String language, String title, String summary) {
+		Log.w("insertBookInfo", "title:"+title+", summary:"+summary);
+		
 		final SQLiteStatement statement = get(
 			"INSERT OR IGNORE INTO Books (encoding,language,title,file_id,summary) VALUES (?,?,?,?,?)"
 		);
