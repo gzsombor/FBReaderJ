@@ -117,6 +117,7 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 			setupCover(myBook, pluginCollection);
 			setupBookInfo(myBook);
 			setupAnnotation(myBook, pluginCollection);
+			setupSummary(myBook);
 			setupFileInfo(myBook);
 		}
 
@@ -238,19 +239,26 @@ public class BookInfoActivity extends Activity implements MenuItem.OnMenuItemCli
 		setupInfoPair(R.id.book_language, "language", new Language(language).Name);
 	}
 
-	private void setupAnnotation(Book book, PluginCollection pluginCollection) {
-		final TextView titleView = (TextView)findViewById(R.id.book_info_annotation_title);
-		final TextView bodyView = (TextView)findViewById(R.id.book_info_annotation_body);
-		final String annotation = BookUtil.getAnnotation(book, pluginCollection);
-		if (annotation == null) {
+	private void setupSummary(Book book) {
+		setupInfo(R.id.book_info_summary_title, "description", R.id.book_info_summary_body, book.getSummary());
+	}
+	private void setupInfo(int titleId, String titleKey, int bodyId, String bodyText) {
+		final TextView titleView = (TextView)findViewById(titleId);
+		final TextView bodyView = (TextView)findViewById(bodyId);
+		if (bodyText == null) {
 			titleView.setVisibility(View.GONE);
 			bodyView.setVisibility(View.GONE);
 		} else {
-			titleView.setText(myResource.getResource("annotation").getValue());
-			bodyView.setText(HtmlUtil.getHtmlText(NetworkLibrary.Instance(Paths.systemInfo(this)), annotation));
+			titleView.setText(myResource.getResource(titleKey).getValue());
+			bodyView.setText(HtmlUtil.getHtmlText(NetworkLibrary.Instance(Paths.systemInfo(this)), bodyText));
 			bodyView.setMovementMethod(new LinkMovementMethod());
 			bodyView.setTextColor(ColorStateList.valueOf(bodyView.getTextColors().getDefaultColor()));
 		}
+	}
+
+	private void setupAnnotation(Book book, PluginCollection pluginCollection) {
+		final String annotation = BookUtil.getAnnotation(book, pluginCollection);
+		setupInfo(R.id.book_info_annotation_title, "annotation", R.id.book_info_annotation_body, annotation);
 	}
 
 	private void setupFileInfo(Book book) {
